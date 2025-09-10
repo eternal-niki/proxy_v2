@@ -19,14 +19,18 @@
 <iframe id="viewer"></iframe>
 
 <script>
+function base64Encode(str) {
+    return btoa(unescape(encodeURIComponent(str)))  // UTF-8対応
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); // URL-safe
+}
+
 function openProxy() {
     const url = document.getElementById("urlInput").value;
     if (!url) return;
-    const encoded = encodeURIComponent(url);
+    const encoded = base64Encode(url);
     const iframe = document.getElementById("viewer");
-    iframe.src = `/proxy/?url=${encoded}`;
+    iframe.src = `/proxy/?encoded_url=${encoded}`;
 
-    // iframe内リンク自動書き換え
     iframe.onload = () => {
         try {
             const doc = iframe.contentDocument || iframe.contentWindow.document;
@@ -34,7 +38,7 @@ function openProxy() {
             links.forEach(link => {
                 const href = link.getAttribute("href");
                 if (href.startsWith("http")) {
-                    link.setAttribute("href", `/proxy/?url=${encodeURIComponent(href)}`);
+                    link.setAttribute("href", `/proxy/?encoded_url=${base64Encode(href)}`);
                     link.setAttribute("target", "_self");
                 }
             });
