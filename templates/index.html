@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Anonymous Viewer</title>
+<style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
+    input[type="text"] { width: 400px; padding: 8px; font-size: 16px; }
+    button { padding: 8px 16px; font-size: 16px; margin-left: 8px; cursor: pointer; }
+    iframe { width: 90%; height: 80vh; margin-top: 20px; border: 1px solid #ccc; }
+</style>
+</head>
+<body>
+<h1>Anonymous Viewer</h1>
+<div>
+    <input type="text" id="urlInput" placeholder="Enter URL...">
+    <button onclick="openProxy()">Go</button>
+</div>
+<iframe id="viewer"></iframe>
+
+<script>
+function openProxy() {
+    const url = document.getElementById("urlInput").value;
+    if (!url) return;
+    const encoded = encodeURIComponent(url);
+    const iframe = document.getElementById("viewer");
+    iframe.src = `/proxy/?url=${encoded}`;
+
+    // iframe内リンク自動書き換え
+    iframe.onload = () => {
+        try {
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            const links = doc.querySelectorAll("a[href]");
+            links.forEach(link => {
+                const href = link.getAttribute("href");
+                if (href.startsWith("http")) {
+                    link.setAttribute("href", `/proxy/?url=${encodeURIComponent(href)}`);
+                    link.setAttribute("target", "_self");
+                }
+            });
+        } catch (e) {
+            console.log("Cross-origin restriction: リンク書き換え不可");
+        }
+    };
+}
+</script>
+</body>
+</html>
